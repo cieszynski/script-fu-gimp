@@ -16,19 +16,30 @@
                             100                 ;The layer opacity
                             0                   ;The layer combination mode
             )))
+
+            (layers (gimp-image-get-layers image))
+            (i (- (car layers) 1))
+            (layer-array (cadr layers))
         )
-        
 
-        (gimp-layer-set-mode layer LAYER-MODE-HSV-VALUE)
-        (gimp-image-insert-layer image layer2 0 1)
+        (while (>= i 0)
+            (let ((layer (aref layer-array i)))
+                (gimp-image-insert-layer image (car (gimp-layer-copy layer2 TRUE)) 0 (+ i 1))
+                (gimp-layer-set-mode layer LAYER-MODE-HSV-VALUE)
+            )
+            (set! i (- i 1))
+        )
 
-        (set! layer (car (gimp-image-flatten image)))
-        (set! drawable (car (gimp-image-get-active-layer image)))
+        (set! i (- (car layers) 1))
+       
+        (while (>= i 0)
+            (let ((layer (aref layer-array i)))
+                (gimp-image-merge-down image layer CLIP-TO-IMAGE)
+            )
+            (set! i (- i 1))
+        )
 
-        (gimp-drawable-brightness-contrast drawable 0 0.04)
-        (plug-in-normalize RUN-NONINTERACTIVE image drawable)
-        (gimp-displays-flush)
-        (gimp-message "OK")
+        (gimp-displays-flush)        
     )
 )
 
